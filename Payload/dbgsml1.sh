@@ -35,49 +35,57 @@ if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
     show_help
 fi
 
+# 2. Capture the script and shift arguments
+TARGET_SCRIPT="$1"
+shift  # This moves $2 to $1, $3 to $2, etc. $@ now holds ONLY the args.
 
+# 3. The debugger engine
 debugger_step() {
-    trap - DEBUG
+    # Prevent the debugger from debugging its own internal read/eval loops
+    [[ "$BASH_COMMAND" == "debugger_step"* ]] && return
+    [[ "$BASH_COMMAND" == "read"* ]] && return
+    [[ "$BASH_COMMAND" == "eval"* ]] && return
 
-    [[ "$BASH_COMMAND" == "debugger_step"* ]] && { trap 'debugger_step' DEBUG; return; }
-
-    # FIX: Use BASH_LINENO[0] instead of $LINENO for sourced scripts
-    # Use $(basename "${BASH_SOURCE[1]}") to show which file is being executed
-    local current_file=$(basename "${BASH_SOURCE[1]}")
-    local current_line=${BASH_LINENO[0]}
-
-    echo -e "\033[1;33m[DEBUG PID:$$]\033[0m $current_file:$current_line \033[32m$BASH_COMMAND\033[0m"
+    echo -e "\033[1;33m[DEBUG]\033[0m Line $LINENO: \033[32m$BASH_COMMAND\033[0m"
 
     while true; do
-        read -p "dbg> " cmd < /dev/tty
+        # Read from the TTY (File Descriptor 3)
+        read -p "dbg> " -u 3 cmd
         case "$cmd" in
-            "")
-                trap 'debugger_step' DEBUG
-                return ;;
-            "q") exit 0 ;;
+            "") return ;; # Step forward
+            "q")
+                echo "Exiting debugger..."
+                exit 0 ;;
             v*)
                 var_name=$(echo "${cmd#v }" | xargs)
                 echo "Value of $var_name: ${!var_name}"
                 ;;
             i*)
                 inspect_cmd=$(echo "${cmd#i }" | xargs)
-                eval "$inspect_cmd" < /dev/tty
+                echo -e "\033[1;34m[INSPECT]\033[0m Executing: $inspect_cmd"
+                eval "$inspect_cmd"
                 ;;
-            *) echo "Enter: Step | v <var>: View | i <cmd>: Run | q: Quit" ;;
+            *) echo "Commands: [Enter]=Step | v <var>=View | i <cmd>=Run | q=Quit" ;;
         esac
     done
 }
 
-# --- Rest of the script remains the same ---
-export SML_DEBUG_ACTIVE="true"
-export BASH_ENV="$0"
-export SHELLOPTS
+# 4. Open the terminal for interactive input
+exec 3< /dev/tty
+
+# 5. Enable advanced Bash debugging
 shopt -s extdebug
-set -o functrace
 trap 'debugger_step' DEBUG
 
-if [[ -f "$1" ]]; then
-    TARGET_SCRIPT="$1"
-    shift
+# 6. Execute the script with the captured arguments ($@)
+if [[ -f "$TARGET_SCRIPT" ]]; then
+    # Use 'source' to ensure the DEBUG trap stays active inside the target script
     source "$TARGET_SCRIPT" "$@"
+else
+    echo "Error: Script '$TARGET_SCRIPT' not found."
+    exit 1
 fi
+
+# 7. Cleanup after script finishes
+trap - DEBUG
+exec 3<&-

@@ -27,6 +27,9 @@ show_help() {
     echo ""
     echo "Options:"
     echo "    -h, --help    Show this help message and exit"
+    echo ""
+    echo "Note to trace a service from its name use pipeing from pidsml:"
+    echo "   pidsml cron | peeksml"
     exit 0
 }
 
