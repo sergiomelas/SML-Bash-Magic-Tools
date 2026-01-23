@@ -1,5 +1,5 @@
 #!/bin/bash
-# peeksml command to see the output of a bash process
+# peeksml command to see the output of a bash process emulating a terminal
 # Usage: peeksml <pid number>
 
 ##################################################################
