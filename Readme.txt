@@ -10,7 +10,10 @@
 
 A collection of bash tools developed in the years expecially for bash scripts debugging,
 nothing sophisticated but quite handy.
-Many I have buth not ready for production, so far:
+Many I have but not ready for production, so far:
+
+- dbgsml     : An interactive step-through debugger for Bash scripts.
+
 - journalsml : Command to Peeks into the live systemd journal. If a keyword is provided,
                it filters logs in real-time for that specific string for new events.
 
@@ -25,10 +28,12 @@ Many I have buth not ready for production, so far:
 
 - searchjsml : Searches past system logs for a keyword. Optionally limit the search to a specific time range.
 
+- tracesml   : Traces a script's execution with timestamps and line numbers.
+
 Many more will came in a near future after deep testing.
 
-To install just Runn all install.sh
-All the command in Payload will be installed.
+To install just Run install.sh
+All the command in .\Payload will be installed.
 
 ##################################################################################################################
 Change log:

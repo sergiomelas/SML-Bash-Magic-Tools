@@ -29,6 +29,8 @@ sudo apt-get update
 sudo apt-get install -y strace perl procps
 #killsml
 sudo apt-get install -y util-linux
+#trace sml
+sudo apt-get install -y systemd diffutils
 
 
 
