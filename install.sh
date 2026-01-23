@@ -22,16 +22,31 @@ echo  "Login as administrator to install"
 sudo ls >/dev/null
 echo  ""
 
-# 2. Install Dependencies
-echo "Installing core dependencies..."
-sudo apt-get update
-#peeksml pidsml
-sudo apt-get install -y strace perl procps
-#killsml
-sudo apt-get install -y util-linux
-#trace sml
-sudo apt-get install -y systemd diffutils
+# 2. Install Dependencies - Unified Dependency Installation
 
+echo "Installing core dependencies..."
+
+# Master Dependency List for SML Magic Tools 2026:
+# - strace: peeksml (Process I/O interception)
+# - perl: peeksml (Real-time output decoding)
+# - procps: pidsml, killsml, orphansml (pgrep, ps, kill)
+# - util-linux: dbgsml (TTY and terminal handling)
+# - systemd: journalsml, searchsml (Journalctl access)
+# - diffutils: envsml (Environment diffing)
+# - shellcheck: checklsml (Deep logic & syntax analysis)
+# - gzip: searchlsml (zgrep for compressed logs)
+# - findutils: orphansml (Advanced dangling link discovery)
+
+sudo apt-get update && sudo apt-get install -y \
+    strace \
+    perl \
+    procps \
+    util-linux \
+    systemd \
+    diffutils \
+    shellcheck \
+    gzip \
+    findutils
 
 
 

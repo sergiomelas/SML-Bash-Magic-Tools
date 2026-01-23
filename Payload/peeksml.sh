@@ -60,6 +60,9 @@ if ! ps -p "$PID" > /dev/null 2>&1; then
 fi
 
 echo "Attaching to process $PID... (Ctrl+C to detach)"
+echo "Starting Virtual Terminal"
+echo " "
+
 
 # Intercept write calls and clean the output using Perl
 sudo strace -p "$PID" -s 9999 -e write -e signal=none 2>&1 | \

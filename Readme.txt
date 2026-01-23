@@ -12,25 +12,36 @@ A collection of bash tools developed in the years expecially for bash scripts de
 nothing sophisticated but quite handy.
 Many I have but not ready for production, so far:
 
+- codecksml  : Hybrid Checker Combines Bash -n and ShellCheck for total validation before running,
+               suggesting code imporovements
+
 - dbgsml     : An interactive step-through debugger for Bash scripts.
+
 
 - journalsml : Command to Peeks into the live systemd journal. If a keyword is provided,
                it filters logs in real-time for that specific string for new events.
 
 - killsml    : Command to Kill all processes matching a substring with confirmation.
 
+
 - logsml     : Command to Search /var/log/ for the most recently modified fil containing the
                keyword and starts a live audit of events and print them.
 
+- orphansml  : Finds and manages orphaned symlinks, empty folders, and abandoned temp files.
+
+
 - peeksml    : Command to see the output of a bash process emulating a terminal.
+
 
 - pidsml     : Command to find the PID of a process by its filename.
 
+
 - searchjsml : Searches past system logs for a keyword. Optionally limit the search to a specific time range.
+
 
 - tracesml   : Traces a script's execution with timestamps and line numbers.
 
-Many more will came in a near future after deep testing.
+Some more will came in a near future after deep testing.
 
 To install just Run install.sh
 All the command in .\Payload will be installed.
