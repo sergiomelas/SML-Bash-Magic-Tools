@@ -8,16 +8,27 @@
 #                                                                #
 ##################################################################
 
-A collection of bash tools developed in the years expecially
-for bash scripts debugging
-
+A collection of bash tools developed in the years expecially for bash scripts debugging,
+nothing sophisticated but quite handy.
 Many I have buth not ready for production, so far:
-- killsml : Kills all processes matching a substring with confirmation
-- peeksml : command to see the output of a bash process emulating a terminal
-- pidsml  : command to find the PID of a process by its filename
+- journalsml : Command to Peeks into the live systemd journal. If a keyword is provided,
+               it filters logs in real-time for that specific string for new events.
+
+- killsml    : Command to Kill all processes matching a substring with confirmation.
+
+- logsml     : Command to Search /var/log/ for the most recently modified fil containing the
+               keyword and starts a live audit of events and print them.
+
+- peeksml    : Command to see the output of a bash process emulating a terminal.
+
+- pidsml     : Command to find the PID of a process by its filename.
+
+- searchjsml : Searches past system logs for a keyword. Optionally limit the search to a specific time range.
+
+Many more will came in a near future after deep testing.
 
 To install just Runn all install.sh
-All the command in Payload will be installed
+All the command in Payload will be installed.
 
 ##################################################################################################################
 Change log:

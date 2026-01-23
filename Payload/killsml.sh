@@ -2,9 +2,14 @@
 # killsml - SML magic tools 2021-26
 # Kills all processes matching a substring with confirmation
 
+
 ##################################################################
 #                       sml magic tools                          #
 #       Developed for for bash by sergio melas 2021-26           #
+#                                                                #
+#                Emai: sergiomelas@gmail.com                     #
+#                   Released unde GPV V2.0                       #
+#                                                                #
 ##################################################################
 
 show_help() {
