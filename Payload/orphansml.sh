@@ -12,9 +12,10 @@
 ##################################################################
 
 # --- 2026 COMPREHENSIVE SAFETY BLACKLIST ---
-# Removing empty directories in these paths is BLOCKED or SKIPPED to prevent OS crashes.
+# Protecting core OS, user profiles, and containerized app data.
+# Removing empty directories in these paths is BLOCKED or SKIPPED to prevent OS crashes or user data loss.
 BLACKLIST=(
-    # --- CORE SYSTEM & BOOT (CRITICAL) ---
+    # --- 1. CORE SYSTEM & BOOT (CRITICAL) ---
     "/boot"      # [Bootloader/Kernel] Deleting subdirs here risks making the system unbootable.
     "/lib"       # [Shared Libraries] Essential shared libraries required for almost all programs.
     "/lib64"     # [64-bit Libraries] Essential for 64-bit system execution and boot.
@@ -22,22 +23,48 @@ BLACKLIST=(
     "/sys"       # [Hardware Interface] Virtual filesystem for hardware; managed only by kernel.
     "/dev"       # [Device Nodes] Essential for hardware access (disks, mouse, keyboard).
     "/usr"       # [System Binaries] Contains user-level applications; structure must remain intact.
+    "/etc"       # [Configuration] Heart of the system; many apps fail if subdirs vanish.
 
-    # --- RUNTIME & COMMUNICATIONS (STABILITY) ---
+    # --- 2. RUNTIME & COMMUNICATIONS (STABILITY) ---
     "/run"       # [Volatile Runtime] Modern systemd path for active PIDs and sockets.
     "/var/run"   # [Legacy Runtime] Symlink to /run; essential for service communication.
     "/var/lock"  # [Device Locks] Prevents hardware conflicts between programs.
 
-    # --- LOGS & APP STATE (SERVICE HEALTH) ---
+    # --- 3. LOGS & APP STATE (SERVICE HEALTH) ---
     "/var/log"   # [System Logs] Services (Nginx/MySQL) crash if their log subfolders are missing.
     "/var/lib"   # [Persistent State] Critical for database, docker, and package manager states.
-    "/etc"       # [Configuration] Heart of the system; many apps fail if subdirs vanish.
 
-    # --- ADMIN & SERVICE DATA (PROTECTION) ---
+    # --- 4. ADMIN & SERVICE DATA (PROTECTION) ---
     "/root"      # [Admin Home] Home directory for the root user; should be left untouched.
     "/opt"       # [Optional Apps] Third-party software (Chrome, Spotify) folder structures.
     "/srv"       # [Service Data] Specific data for web/FTP server deployments.
+
+    # --- 5. USER PROFILE: BROWSER & DATA (HISTORY PROTECTION) ---
+    "$HOME/.config"  # [Chrome/Brave/Settings] Prevents losing browser history, sessions, and app configs.
+    "$HOME/.local"   # [User Data] Protects local bin, desktop entries, and user-specific databases.
+    "$HOME/.cache"   # [User Cache] Essential for app performance; deleting subdirs breaks active sessions.
+    "$HOME/.mozilla" # [Firefox] Protects history, bookmarks, and extensions for Firefox profiles.
+    "$HOME/.pki"     # [Certificates] Security keys and NSS databases required for HTTPS/SSL browsing.
+    "$HOME/.ssh"     # [Secure Shell] Protects private/public keys for server and GitHub access.
+    "$HOME/.gnupg"   # [Encryption] Protects PGP keys used for signing and secure communication.
+
+    # --- 6. CONTAINERIZED & GAMING (MODERN 2026 STANDARDS) ---
+    "$HOME/.var/app"           # [Flatpak] Essential for history and data of Flatpak-installed browsers.
+    "$HOME/snap"               # [Snap] Data and configuration paths for Snap-based applications.
+    "/var/lib/flatpak"         # [System Flatpak] Global flatpak installation structures.
+    "/var/lib/snapd"           # [System Snap] Global snapd system management files.
+    "$HOME/.steam"             # [Steam] Login credentials and local game configurations.
+    "$HOME/.local/share/Steam" # [Steam Library] Prevents corruption of Proton/Wine game prefixes.
+    "$HOME/.nv"                # [NVIDIA] Protects compiled GL shaders for RTX 3090 stability.
+    "$HOME/.cache/nvidia"      # [NVIDIA Cache] Prevents stuttering in VR/Games by keeping pre-compiled shaders.
+
+    # --- 7. RECOVERY & CROSS-DISTRO (SAFETY) ---
+    "/lost+found" # [FS Recovery] Essential directory for filesystem repair (EXT4/XFS requirement).
+    "$HOME/.wine" # [Wine] Protects Windows-app prefixes (useful for Pimax/VR compatibility tools).
 )
+
+
+
 
 show_help() {
     echo "Usage: orphansml [target_directory] [options]"
