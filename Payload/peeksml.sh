@@ -59,6 +59,11 @@ if ! ps -p "$PID" > /dev/null 2>&1; then
     exit 1
 fi
 
+# 1. Login
+echo  "Login as administrator"
+sudo ls >/dev/null
+echo  ""
+
 echo "Attaching to process $PID... (Ctrl+C to detach)"
 echo "Starting Virtual Terminal"
 echo " "

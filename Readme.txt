@@ -27,7 +27,9 @@ Many I have but not ready for production, so far:
 - logsml     : Command to Search /var/log/ for the most recently modified fil containing the
                keyword and starts a live audit of events and print them.
 
-- orphansml  : Finds and manages orphaned symlinks, empty folders, and abandoned temp files. Use this tool with cautions, wile i used all care to eclude critical empty folders from the cleaning be cautions
+- orphansml  : Finds and manages orphaned symlinks, empty folders, and abandoned temp files.
+               Use this tool with cautions, wile i used all care to eclude critical empty folders
+               from the cleaning still  be cautions before proceed
 
 
 - peeksml    : Command to see the output of a bash process emulating a terminal.

@@ -102,7 +102,12 @@ fi
 # 2. Count matches
 COUNT=$(echo "$MATCHES" | wc -l)
 
-# 3. BLACKLIST ENFORCEMENT
+# 3. Login
+echo  "Login as administrator to install"
+sudo ls >/dev/null
+echo  ""
+
+# 4. BLACKLIST ENFORCEMENT
 while read -r line; do
     # Check if any part of the command line contains a blacklisted word
     for protected in "${BLACKLIST[@]}"; do
@@ -120,7 +125,7 @@ while read -r line; do
     done
 done <<< "$MATCHES"
 
-# 4. VOLUME SAFETY
+# 5. VOLUME SAFETY
 if [ "$COUNT" -gt "$MAX_THRESHOLD" ]; then
     echo -e "\n\033[1;41m [DANGER: TOO MANY PROCESSES] \033[0m"
     echo -e "Your search matched $COUNT processes."

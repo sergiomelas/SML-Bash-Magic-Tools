@@ -4,29 +4,15 @@
 
 ##################################################################
 #                       sml magic tools                          #
-#       Developed for for bash by sergio melas 2021-26           #
+#       Developed for bash by sergio melas 2021-26               #
 #                                                                #
-#                Emai: sergiomelas@gmail.com                     #
-#                   Released unde GPV V2.0                       #
+#                Email: sergiomelas@gmail.com                    #
+#                   Released under GPL V2.0                      #
 #                                                                #
 ##################################################################
 
-show_help() {
-    echo "Usage: orphansml [target_directory] [options]"
-    echo ""
-    echo "Options:"
-    echo "  --clean       Automatically remove identified orphans (requires confirmation)"
-    echo "  -h, --help    Show this help message and exit"
-    echo ""
-    echo "Default target: /tmp and current directory"
-    exit 0
-}
-
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; fi
-
-
 # --- 2026 COMPREHENSIVE SAFETY BLACKLIST ---
-# Removing empty directories in these paths is BLOCKED to prevent OS crashes.
+# Removing empty directories in these paths is BLOCKED or SKIPPED to prevent OS crashes.
 BLACKLIST=(
     # --- CORE SYSTEM & BOOT (CRITICAL) ---
     "/boot"      # [Bootloader/Kernel] Deleting subdirs here risks making the system unbootable.
@@ -60,7 +46,7 @@ show_help() {
     echo "  --clean       Automatically remove identified orphans (requires confirmation)"
     echo "  -h, --help    Show this help message and exit"
     echo ""
-    echo "Safety Status: 2026 Safety-Shield active (targets outside of \$HOME are restricted)."
+    echo "Safety Status: 2026 Safety-Shield active (targets inside system paths are skipped)."
     exit 0
 }
 
@@ -68,9 +54,20 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; fi
 
 TARGET_DIR="${1:-.}"
 CLEAN_MODE=false
-[[ "$2" == "--clean" || "$1" == "--clean" ]] && CLEAN_MODE=true
+# Check both arguments for --clean to allow flexible usage
+[[ "$1" == "--clean" || "$2" == "--clean" ]] && CLEAN_MODE=true
 
-# Helper to print rows consistently
+# Resolve path to absolute to prevent bypass via ./ or ../
+ABS_TARGET=$(realpath "$TARGET_DIR" 2>/dev/null)
+
+# --- GLOBAL SAFETY SHIELD (ABORT ONLY ON ROOT TARGETS) ---
+if [[ "$ABS_TARGET" == "/" ]] || [[ "$ABS_TARGET" == "/usr" ]]; then
+    echo -e "\n\033[1;41m  CRITICAL SAFETY ABORT  \033[0m"
+    echo -e "Target: $ABS_TARGET"
+    echo -e "Reason: Targeting the root of the OS is forbidden for safety."
+    exit 1
+fi
+
 print_row() {
     local status=$1
     local reason=$2
@@ -78,55 +75,40 @@ print_row() {
     printf "%-12s %-30s | %s\n" "$status" "$reason" "$file"
 }
 
-# --- GLOBAL SAFETY SHIELD ---
-# Resolves path to absolute to prevent bypass via ./ or ../
-ABS_TARGET=$(realpath "$TARGET_DIR" 2>/dev/null)
-
-for protected in "${BLACKLIST[@]}"; do
-    # If target is exactly a protected dir OR a parent of one (like '/'), we block it.
-    if [[ "$ABS_TARGET" == "$protected" ]] || [[ "$protected" == "$ABS_TARGET"* ]]; then
-        echo -e "\n\033[1;41m  CRITICAL SAFETY ABORT  \033[0m"
-        echo -e "Target: $ABS_TARGET"
-        echo -e "Status: BLOCKED (Protected System Path)"
-        echo -e "Reason: Removing empty directories in this tree risks a system crash."
-        echo -e "------------------------------------------------------"
-        exit 1
-    fi
-done
-
-echo "Scanning for orphans in: $TARGET_DIR and /tmp"
+echo "Scanning for orphans in: $ABS_TARGET and /tmp"
 echo "--------------------------------------------------------------------------------"
 printf "%-12s %-30s | %s\n" "STATUS" "REASON" "FILE PATH"
 echo "--------------------------------------------------------------------------------"
 
-# --- 1. Dead Symlinks (Scan is safe) ---
-DEAD_LINKS=$(find "$TARGET_DIR" -xtype l 2>/dev/null)
-if [ -n "$DEAD_LINKS" ]; then
-    while read -r link; do
+# --- 1. Dead Symlinks (Scan with space-safety) ---
+DEAD_LINKS=""
+while IFS= read -r -d '' link; do
+    IS_PROT=false
+    for prot in "${BLACKLIST[@]}"; do [[ "$link" == "$prot"* ]] && IS_PROT=true && break; done
+
+    if [ "$IS_PROT" = true ]; then
+        print_row "[SYS-SAFE]" "Critical system link" "$link"
+    else
         print_row "[ORPHAN]" "Dangling Symlink" "$link"
-    done <<< "$DEAD_LINKS"
-fi
+        DEAD_LINKS+="$link"$'\n'
+    fi
+done < <(find "$TARGET_DIR" -xtype l -print0 2>/dev/null)
 
-# --- 2. Empty Directories (With Sub-Path Protection) ---
-EMPTY_DIRS_RAW=$(find "$TARGET_DIR" -mindepth 1 -type d -empty 2>/dev/null)
+# --- 2. Empty Directories (The "Skip" Logic) ---
 FINAL_EMPTY_DIRS=""
+while IFS= read -r -d '' dir; do
+    IS_PROTECTED=false
+    for prot in "${BLACKLIST[@]}"; do
+        if [[ "$dir" == "$prot"* ]]; then IS_PROTECTED=true; break; fi
+    done
 
-if [ -n "$EMPTY_DIRS_RAW" ]; then
-    while read -r dir; do
-        IS_PROTECTED=false
-        # Verify sub-directories against the blacklist
-        for prot in "${BLACKLIST[@]}"; do
-            if [[ "$dir" == "$prot"* ]]; then IS_PROTECTED=true; break; fi
-        done
-
-        if [ "$IS_PROTECTED" = true ]; then
-            print_row "[SYS-SAFE]" "Protected system path" "$dir"
-        else
-            print_row "[ORPHAN]" "Empty Directory" "$dir"
-            FINAL_EMPTY_DIRS+="$dir"$'\n'
-        fi
-    done <<< "$EMPTY_DIRS_RAW"
-fi
+    if [ "$IS_PROTECTED" = true ]; then
+        print_row "[SYS-SAFE]" "System critical structure" "$dir"
+    else
+        print_row "[ORPHAN]" "Empty Directory" "$dir"
+        FINAL_EMPTY_DIRS+="$dir"$'\n'
+    fi
+done < <(find "$TARGET_DIR" -mindepth 1 -type d -empty -print0 2>/dev/null)
 
 # --- 3. Temporary Files Analysis ---
 TO_DELETE=""
@@ -147,16 +129,39 @@ for f in /tmp/*; do
 done
 
 # --- Cleanup Logic ---
-if [ "$CLEAN_MODE" = true ] && [[ -n "$DEAD_LINKS" || -n "$FINAL_EMPTY_DIRS" || -n "$TO_DELETE" ]]; then
-    echo -e "\n\033[1;43m  FINAL CONFIRMATION REQUIRED  \033[0m"
-    read -p "Remove identified [ORPHAN] items? (y/N): " CONFIRM
-    if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
-        [ -n "$DEAD_LINKS" ] && echo "$DEAD_LINKS" | xargs -d '\n' rm -v 2>/dev/null
-        [ -n "$FINAL_EMPTY_DIRS" ] && echo "$FINAL_EMPTY_DIRS" | xargs -d '\n' rmdir -v 2>/dev/null
-        [ -n "$TO_DELETE" ] && echo "$TO_DELETE" | xargs -d '\n' rm -rf -v 2>/dev/null
-        echo "Cleanup complete."
-    else
-        echo "Cleanup cancelled."
-    fi
-fi
+FOUND_ORPHANS=false
+[[ -n "$DEAD_LINKS" || -n "$FINAL_EMPTY_DIRS" || -n "$TO_DELETE" ]] && FOUND_ORPHANS=true
 
+if [ "$FOUND_ORPHANS" = true ]; then
+    if [ "$CLEAN_MODE" = true ]; then
+        echo -e "\n\033[1;43m  FINAL CONFIRMATION REQUIRED  \033[0m"
+        read -p "Remove identified [ORPHAN] items? (y/N): " CONFIRM
+        if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+            echo -e "\n\033[1;32mPROGRESS     ACTION                         | FILE PATH\033[0m"
+            echo "--------------------------------------------------------------------------------"
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                rm "$line" 2>/dev/null && print_row "[CLEANED]" "Dangling Symlink" "$line"
+            done <<< "$DEAD_LINKS"
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                rmdir "$line" 2>/dev/null && print_row "[CLEANED]" "Empty Directory" "$line"
+            done <<< "$FINAL_EMPTY_DIRS"
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                rm -rf "$line" 2>/dev/null && print_row "[CLEANED]" "Temporary File" "$line"
+            done <<< "$TO_DELETE"
+            echo -e "\nCleanup complete."
+        else
+            echo "Cleanup cancelled."
+        fi
+    else
+        echo -e "\n\033[1;33mSCAN COMPLETE\033[0m: Orphans found. Run with --clean to remove them."
+    fi
+else
+    echo -e "\n\033[1;32m✓ SYSTEM CLEAN\033[0m: No orphaned symlinks, empty folders, or dead temp files found."
+    echo -e "\n\033[1;34mINFO: Items listed above were SKIPPED because:\033[0m"
+    echo -e " - [SYS-PROT]: Systemd sandboxes are vital for OS service isolation."
+    echo -e " - [NOACCESS]: Files belong to other users/root (SDDM, VMware, etc)."
+    echo -e " - [SYS-SAFE]: Directory is part of the core Linux file-hierarchy (Blacklist)."
+fi
