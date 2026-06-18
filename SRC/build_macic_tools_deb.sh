@@ -3,6 +3,11 @@
 # Developed by Sergio Melas - 2026
 set -e
 
+# Identity Configuration
+export DEBFULLNAME="Sergio Melas"
+export DEBEMAIL="sergiomelas@gmail.com"
+MAINTAINER="${DEBFULLNAME} <${DEBEMAIL}>"
+
 echo " "
 echo " ##################################################################"
 echo " #                                                                #"
@@ -14,8 +19,7 @@ echo " "
 
 
 PKG_NAME="sml-magic-tools"
-VERSION="1.0.0"
-MAINTAINER="Sergio Melas <sergiomelas@gmail.com>"
+VERSION="1.0.1"
 BASE_DIR="$(pwd)"
 BUILD_DIR="${BASE_DIR}/sml_build_tmp"
 
