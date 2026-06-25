@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=SML Magic System Crash Simulation
+Name[en_US]=SML System Crash Simulation
+GenericName=SML System Crash Simulation
+GenericName[en_US]=SML System Crash Simulation
+Comment=Crash Linux Use with caution
+Comment[en_US]=Crash Linux Use with caution
+Exec=crashsml
+Icon=bombermaaan
+Categories=System;Utility;Development;
+Terminal=false
+StartupNotify=true
+MultipleArgs=false
+X-KDE-SubstituteUID=false

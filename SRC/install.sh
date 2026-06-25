@@ -46,4 +46,29 @@ else
     echo "Status: Debian package environment detected. Finalizing..."
 fi
 
+# Install Desktop Launcher Shortcut
+DESKTOP_SRC="$(pwd)/Payload/System_Crash.desktop"
+if [ -f "$DESKTOP_SRC" ]; then
+    echo " -> Installing Launcher: System_Crash.desktop"
+    cp "$DESKTOP_SRC" "/usr/share/applications/System_Crash.desktop"
+    chmod 644 "/usr/share/applications/System_Crash.desktop"
+    chown root:root "/usr/share/applications/System_Crash.desktop"
+fi
+
+# Install Vector Icon Asset
+ICON_SRC="$(pwd)/Payload/bombermaaan.svg"
+if [ -f "$ICON_SRC" ]; then
+    echo " -> Installing Desktop Icon: bombermaaan.svg"
+    mkdir -p "/usr/share/icons/hicolor/scalable/apps"
+    cp "$ICON_SRC" "/usr/share/icons/hicolor/scalable/apps/bombermaaan.svg"
+    chmod 644 "/usr/share/icons/hicolor/scalable/apps/bombermaaan.svg"
+    chown root:root "/usr/share/icons/hicolor/scalable/apps/bombermaaan.svg"
+
+    # Update the system icon theme cache registry
+    if command -v gtk-update-icon-cache &> /dev/null; then
+        echo " -> Updating system icon cache registry..."
+        gtk-update-icon-cache -f -t /usr/share/icons/hicolor &>/dev/null || true
+    fi
+fi
+
 echo -e "\nSML Magic Tools activated."
